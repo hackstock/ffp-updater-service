@@ -21,13 +21,20 @@
 
 [[projects]]
   name = "go.uber.org/zap"
-  packages = [".","buffer","internal/bufferpool","internal/color","internal/exit","zapcore"]
+  packages = [
+    ".",
+    "buffer",
+    "internal/bufferpool",
+    "internal/color",
+    "internal/exit",
+    "zapcore"
+  ]
   revision = "ff33455a0e382e8a81d14dd7c922020b6b5e7982"
   version = "v1.9.1"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "1579b3562a2eb08d4aac4b233fd6003627da34150987596519ce42df26afc3af"
+  inputs-digest = "08a4b72e0649661dbfbc73bc4de079e0ec32442c25d60b0e1721242eefe196a3"
   solver-name = "gps-cdcl"
   solver-version = 1

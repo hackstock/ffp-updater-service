@@ -8,14 +8,19 @@ import (
 )
 
 var env = struct {
-	Port          int    `envconfig:"PORT" required:"true"`
-	Environment   string `envconfig:"ENV" default:"development"`
-	SyncFrequency int    `envconfig:"SYNC_FREQUENCY" default:"1"`
-	DatabaseURI   string `envconfig:"DATABASE_URI" required:"true"`
+	Port          int    `envconfig:"FFPUPDATER_PORT" required:"true"`
+	Environment   string `envconfig:"FFPUPDATER_ENV" default:"development"`
+	SyncFrequency int    `envconfig:"FFPUPDATER_SYNC_FREQUENCY" default:"1"`
+	DatabaseURI   string `envconfig:"FFPUPDATER_DATABASE_URI" required:"true"`
+	SMSApiConfig  struct {
+		Username string `envconfig:"USERNAME" required:"true"`
+		Password string `envconfig:"PASSWORD" required:"true"`
+		SenderID string `envconfig:"SENDERID" required:"true"`
+	} `envconfig:"SMS_API"`
 }{}
 
 func init() {
-	err := envconfig.Process("FFPUPDATER", &env)
+	err := envconfig.Process("", &env)
 	if err != nil {
 		panic(fmt.Errorf("failed loading env vars : %v", err))
 	}
