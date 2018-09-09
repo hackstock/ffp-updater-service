@@ -10,6 +10,9 @@ import (
 	"syscall"
 	"time"
 
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/hackstock/ffp-updater-service/pkg/repos"
+	"github.com/jmoiron/sqlx"
 	"github.com/kelseyhightower/envconfig"
 	"go.uber.org/zap"
 )
@@ -46,9 +49,15 @@ func main() {
 	if err != nil {
 		panic(fmt.Errorf("failed initializing logger : %v", err))
 	}
+	defer logger.Sync()
 
 	logger.Info("env vars and logger initialized successfully")
 
+	db, err := sqlx.Open("mysql", env.DatabaseURI)
+	if err != nil {
+		logger.Fatal("failed bootstrapping db connection", zap.Error(err))
+	}
+	testFF(db, logger)
 	interval := (24 * time.Hour) / time.Duration(env.SyncFrequency)
 	ticker := time.NewTicker(interval)
 
@@ -56,7 +65,7 @@ func main() {
 		for now := range ticker.C {
 			logger.Info("starting to process unprocessed flight records")
 
-			processFlightRecords()
+			processFlightRecords(db)
 			elapsed := time.Since(now)
 			logger.Info("finished processing unprocessed flight records", zap.Any("in", elapsed))
 		}
@@ -112,6 +121,18 @@ func main() {
 	<-idleConnsClosed
 }
 
-func processFlightRecords() {
+func processFlightRecords(db *sqlx.DB) {
 
+}
+
+func testFF(db *sqlx.DB, l *zap.Logger) {
+	repo := repos.NewFlightRecordsRepo(db)
+	recs, err := repo.GetUnprocessedFlightRecords()
+	if err != nil {
+		l.Error("failed fetching unprocessed flight records", zap.Error(err))
+	}
+
+	for _, rec := range recs {
+		l.Info("row found ", zap.Any("row", rec))
+	}
 }
