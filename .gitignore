@@ -13,3 +13,6 @@
 
 # Godep vendor directory
 vendor/*
+
+# Secret env vars
+.env
