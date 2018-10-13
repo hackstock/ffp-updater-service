@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/hackstock/ffp-updater-service/pkg"
-
 	"github.com/kelseyhightower/envconfig"
 	"go.uber.org/zap"
 )
