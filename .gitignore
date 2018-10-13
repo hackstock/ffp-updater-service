@@ -15,4 +15,7 @@
 vendor/*
 
 # Secret env vars
-.env
+*.env
+
+# IDEs
+.vscode

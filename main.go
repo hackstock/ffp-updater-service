@@ -10,23 +10,17 @@ import (
 	"syscall"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/hackstock/ffp-updater-service/pkg/repos"
-	"github.com/jmoiron/sqlx"
+	"github.com/hackstock/ffp-updater-service/pkg"
+
 	"github.com/kelseyhightower/envconfig"
 	"go.uber.org/zap"
 )
 
 var env = struct {
-	Port          int    `envconfig:"FFPUPDATER_PORT" required:"true"`
-	Environment   string `envconfig:"FFPUPDATER_ENV" default:"development"`
-	SyncFrequency int    `envconfig:"FFPUPDATER_SYNC_FREQUENCY" default:"1"`
-	DatabaseURI   string `envconfig:"FFPUPDATER_DATABASE_URI" required:"true"`
-	SMSApiConfig  struct {
-		Username string `envconfig:"USERNAME" required:"true"`
-		Password string `envconfig:"PASSWORD" required:"true"`
-		SenderID string `envconfig:"SENDERID" required:"true"`
-	} `envconfig:"SMS_API"`
+	Port          int           `envconfig:"PORT" required:"true"`
+	Environment   string        `envconfig:"ENVIRONMENT" default:"development"`
+	APIHost       string        `envconfig:"API_HOST"`
+	SyncFrequency time.Duration `envconfig:"SYNC_FREQUENCY" default:"30m"`
 }{}
 
 func init() {
@@ -53,24 +47,6 @@ func main() {
 
 	logger.Info("env vars and logger initialized successfully")
 
-	db, err := sqlx.Open("mysql", env.DatabaseURI)
-	if err != nil {
-		logger.Fatal("failed bootstrapping db connection", zap.Error(err))
-	}
-	testFF(db, logger)
-	interval := (24 * time.Hour) / time.Duration(env.SyncFrequency)
-	ticker := time.NewTicker(interval)
-
-	go func() {
-		for now := range ticker.C {
-			logger.Info("starting to process unprocessed flight records")
-
-			processFlightRecords(db)
-			elapsed := time.Since(now)
-			logger.Info("finished processing unprocessed flight records", zap.Any("in", elapsed))
-		}
-	}()
-
 	listener, err := net.Listen("tcp4", fmt.Sprintf(":%d", env.Port))
 	if err != nil {
 		logger.Fatal("failed binding to port",
@@ -87,9 +63,7 @@ func main() {
 	)
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
-
-	})
+	mux.HandleFunc("/status", pkg.StatusHandler())
 
 	srv := http.Server{
 		Handler: mux,
@@ -118,21 +92,6 @@ func main() {
 			)
 		}
 	}
+
 	<-idleConnsClosed
-}
-
-func processFlightRecords(db *sqlx.DB) {
-
-}
-
-func testFF(db *sqlx.DB, l *zap.Logger) {
-	repo := repos.NewFlightRecordsRepo(db)
-	recs, err := repo.GetUnprocessedFlightRecords()
-	if err != nil {
-		l.Error("failed fetching unprocessed flight records", zap.Error(err))
-	}
-
-	for _, rec := range recs {
-		l.Info("row found ", zap.Any("row", rec))
-	}
 }

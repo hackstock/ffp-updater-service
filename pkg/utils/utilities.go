@@ -44,7 +44,7 @@ func SendSMS(apiCfg *SmsAPIConfig, to, msg string) error {
 
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	client := http.Client{
-		Timeout: 30 * time.Second,
+		Timeout: 90 * time.Second,
 	}
 
 	res, err := client.Do(req)
