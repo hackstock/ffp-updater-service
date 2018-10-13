@@ -1,5 +1,11 @@
 package pkg
 
+import (
+	"net/http"
+
+	"go.uber.org/zap"
+)
+
 // FlightRecord ...
 type FlightRecord struct {
 	AyTax                string `json:"ayTax"`
@@ -38,4 +44,25 @@ type FlightRecord struct {
 	ZPTax                string `json:"zpTax"`
 	Remarks              string `json:"remarks"`
 	IsProcessed          bool   `json:"isProcessed"`
+}
+
+// RewardsProcess ...
+type RewardsProcess struct {
+	host   string
+	client *http.Client
+	logger *zap.Logger
+}
+
+// NewRewardsProcess ...
+func NewRewardsProcess(host string, client *http.Client, logger *zap.Logger) *RewardsProcess {
+	return &RewardsProcess{
+		host:   host,
+		client: client,
+		logger: logger,
+	}
+}
+
+// Run ...
+func (p *RewardsProcess) Run() {
+
 }
