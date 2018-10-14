@@ -88,6 +88,15 @@ func (p *RewardsProcess) Run() error {
 	p.logger.Info("fetched unprocessed flight records",
 		zap.Int("count", len(res.Data)))
 
+	for _, rec := range res.Data {
+		err = p.applyReward(rec)
+		if err != nil {
+			p.logger.Warn("failed applying rewards",
+				zap.Error(err))
+		}
+
+	}
+
 	return nil
 }
 
