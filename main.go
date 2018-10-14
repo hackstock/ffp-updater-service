@@ -46,6 +46,24 @@ func main() {
 
 	logger.Info("env vars and logger initialized successfully")
 
+	client := &http.Client{Timeout: 30 * time.Second}
+	process := pkg.NewRewardsProcess(env.APIHost, client, logger)
+
+	ticker := time.NewTicker(env.SyncFrequency)
+	go func() {
+		for now := range ticker.C {
+			logger.Info("starting to process unprocessed flight records")
+			err := process.Run()
+			if err != nil {
+				logger.Warn("failed processing unprocessed flight records",
+					zap.Error(err))
+			}
+			elapsed := time.Since(now)
+			logger.Info("finished processing unprocessed rows in",
+				zap.Duration("duration", elapsed))
+		}
+	}()
+
 	listener, err := net.Listen("tcp4", fmt.Sprintf(":%d", env.Port))
 	if err != nil {
 		logger.Fatal("failed binding to port",

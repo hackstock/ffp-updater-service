@@ -75,16 +75,16 @@ func NewRewardsProcess(host string, client *http.Client, logger *zap.Logger) *Re
 	}
 }
 
-// Run ...
-func (p *RewardsProcess) Run() {
+// Run fetches unprocessed flight records from API host
+// and applies FFP rewards to each of the records
+func (p *RewardsProcess) Run() error {
 	res, err := p.getUnprocessedFlightRecords()
 	if err != nil {
-		p.logger.Warn("failed getting unprocessed flight records",
-			zap.Error(err))
+		return fmt.Errorf("failed fetching unprocessed flight records : %v", err)
 	}
 
-	flightRecs := res.Data
-	_ = flightRecs
+	_ = res
+	return nil
 }
 
 func (p *RewardsProcess) getUnprocessedFlightRecords() (*FRResponse, error) {
