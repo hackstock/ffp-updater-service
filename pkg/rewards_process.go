@@ -84,7 +84,9 @@ func (p *RewardsProcess) Run() error {
 		return fmt.Errorf("failed fetching unprocessed flight records : %v", err)
 	}
 
-	_ = res
+	p.logger.Info("fetched unprocessed flight records",
+		zap.Int("count", len(res.Data)))
+
 	return nil
 }
 
