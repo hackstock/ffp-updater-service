@@ -53,6 +53,36 @@ func mockServer(shouldFail bool) http.Handler {
 		w.Write(resJSON)
 	})
 
+	mux.HandleFunc("/ffp/apply", func(w http.ResponseWriter, r *http.Request) {
+		if shouldFail {
+			w.WriteHeader(http.StatusInternalServerError)
+			http.Error(w, "something bad happened", http.StatusInternalServerError)
+			return
+		}
+
+		var fr FlightRecord
+		err := json.NewDecoder(r.Body).Decode(&fr)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		res := struct {
+			Status int          `json:"status"`
+			Data   FlightRecord `json:"data"`
+		}{
+			Status: http.StatusOK,
+			Data:   fr,
+		}
+
+		payload, _ := json.Marshal(res)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(payload)
+
+	})
+
 	return mux
 }
 
@@ -92,4 +122,33 @@ func TestGetUnprocessedFiles_ShouldFail(t *testing.T) {
 	if frRes != nil {
 		t.Fatalf("expected nil, got %v", frRes)
 	}
+}
+
+func TestApplyReward_ShouldPass(t *testing.T) {
+	srv := httptest.NewServer(mockServer(false))
+	defer srv.Close()
+
+	cl := &http.Client{Timeout: 15 * time.Second}
+	rp := NewRewardsProcess(srv.URL, cl, zap.NewNop())
+
+	for _, fr := range mockFlightRecords {
+		err := rp.applyReward(fr)
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+	}
+}
+
+func TestApplyReward_ShouldFail(t *testing.T) {
+	srv := httptest.NewServer(mockServer(true))
+	defer srv.Close()
+
+	cl := &http.Client{Timeout: 15 * time.Second}
+	rp := NewRewardsProcess(srv.URL, cl, zap.NewNop())
+
+	err := rp.applyReward(mockFlightRecords[0])
+	if err == nil {
+		t.Fatalf("expected error, got none")
+	}
+
 }
