@@ -76,3 +76,20 @@ func TestGetUnprocessedFiles_ShouldPass(t *testing.T) {
 		t.Fatalf("expected %v, got %v", mockFlightRecords, frRes.Data)
 	}
 }
+
+func TestGetUnprocessedFiles_ShouldFail(t *testing.T) {
+	srv := httptest.NewServer(mockServer(true))
+	defer srv.Close()
+
+	cl := &http.Client{Timeout: 15 * time.Second}
+	rp := NewRewardsProcess(srv.URL, cl, zap.NewNop())
+
+	frRes, err := rp.getUnprocessedFlightRecords()
+	if err == nil {
+		t.Fatalf("expected error, got none")
+	}
+
+	if frRes != nil {
+		t.Fatalf("expected nil, got %v", frRes)
+	}
+}

@@ -1,6 +1,7 @@
 package pkg
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -111,4 +112,32 @@ func (p *RewardsProcess) getUnprocessedFlightRecords() (*FRResponse, error) {
 
 	_, _ = io.Copy(ioutil.Discard, res.Body)
 	return nil, errors.New(res.Status)
+}
+
+func (p *RewardsProcess) applyReward(fr *FlightRecord) error {
+	url := fmt.Sprintf("%s/ffp/apply", p.host)
+	payload, err := json.Marshal(fr)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(payload))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	res, err := p.client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	_, _ = io.Copy(ioutil.Discard, res.Body)
+	res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		return errors.New(res.Status)
+	}
+
+	return nil
 }
