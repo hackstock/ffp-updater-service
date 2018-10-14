@@ -15,6 +15,7 @@ import (
 // FlightRecord represent a FFP user's flight record
 // to be used for calculating points to be awared
 type FlightRecord struct {
+	ID                   int    `json:"id"`
 	AyTax                string `json:"ayTax"`
 	BaseFare             string `json:"baseFare"`
 	BookDate             string `json:"bookDate"`
