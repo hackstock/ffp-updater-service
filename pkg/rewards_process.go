@@ -77,7 +77,14 @@ func NewRewardsProcess(host string, client *http.Client, logger *zap.Logger) *Re
 
 // Run ...
 func (p *RewardsProcess) Run() {
+	res, err := p.getUnprocessedFlightRecords()
+	if err != nil {
+		p.logger.Warn("failed getting unprocessed flight records",
+			zap.Error(err))
+	}
 
+	flightRecs := res.Data
+	_ = flightRecs
 }
 
 func (p *RewardsProcess) getUnprocessedFlightRecords() (*FRResponse, error) {
