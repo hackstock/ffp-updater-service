@@ -19,3 +19,7 @@ vendor/*
 
 # IDEs
 .vscode
+
+# Builds
+bin/*
+ffp-updater-service
